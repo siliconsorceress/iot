@@ -1,0 +1,25 @@
+
+acme_contact_email: root@siliconsorceress.com
+
+config:
+  rewriteLog: "false"
+
+ingressSpec:
+  tls:
+    - hosts:
+        - iot.siliconsorceress.com
+      secretName: tls-ingress-iot
+  rules:
+    - host: iot.siliconsorceress.com
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: home-assistant
+            servicePort: 8123
+
+ingress:
+  controller:
+    ingressClass: nginx-iot
+    service:
+      loadBalancerIP: 35.203.84.172

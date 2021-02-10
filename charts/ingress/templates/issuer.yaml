@@ -1,0 +1,18 @@
+{{- $fullName := include "iot-ingress.fullname" . -}}
+{{- $ingressClass := .Values.ingress.controller.ingressClass -}}
+{{- $email :=  required "A value is required for 'contact_email' " .Values.acme_contact_email }}
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: {{ $fullName }}
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: {{ $email }}
+    privateKeySecretRef:
+      name: {{ $fullName }}
+    solvers:
+      - selector: {}
+        http01:
+          ingress:
+            class: {{ $ingressClass }}

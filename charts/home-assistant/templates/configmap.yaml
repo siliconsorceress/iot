@@ -1,0 +1,25 @@
+apiVersion: v1
+data:
+  configuration.yaml: |
+    # Managed by Helm
+    #
+    script: !include scripts.yaml
+    scene: !include scenes.yaml
+    automation: !include automations.yaml
+    {{- toYaml .Values.configuration | nindent 4 }}
+  onboarding: |
+    {
+        "version": 3,
+        "key": "onboarding",
+        "data": {
+            "done": [
+                "core_config",
+                "integration"
+            ]
+        }
+    }
+kind: ConfigMap
+metadata:
+  name: {{ include "home-assistant.fullname" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}

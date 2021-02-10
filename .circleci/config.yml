@@ -1,0 +1,103 @@
+version: 2.1
+
+orbs:
+  gcp-gke: circleci/gcp-gke@1.0.1
+  helm: circleci/helm@1.1.2
+
+executors:
+  executor:
+    docker:
+      - image: google/cloud-sdk
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - helmdeploy:
+          name: helmdeploy-ingress
+          cluster-name: k8s-prod
+          namespace: iot
+          release-name: ingress
+          chart: ./charts/ingress
+          #
+          context: gcloud
+          filters:
+            branches:
+              only: main 
+
+      - helmdeploy:
+          name: helmdeploy-home-assistant
+          cluster-name: k8s-prod
+          namespace: iot
+          release-name: home-assistant
+          chart: ./charts/home-assistant
+          values-to-override: "home-assistant.common.podAnnotations.rollme=cci-build-$CIRCLE_BUILD_NUM,configuration.homeassistant.longitude=$SPIRE_LONGITUDE,configuration.homeassistant.latitude=$SPIRE_LATITUDE"
+          #
+          context: gcloud
+          filters:
+            branches:
+              only: main
+
+jobs:
+  helmdeploy:
+    executor: executor
+    working_directory: ~/repo
+    parameters:
+      cluster-name:
+        description: cluster name
+        type: string
+      namespace:
+        description: namespace in which to deploy
+        type: string
+      release-name:
+        description: the name of the helm release to deploy to
+        type: string
+      chart:
+        description: the path of the chart to be deployed
+        type: string
+      repo:
+        description: the URL of the repo 
+        type: string
+        default: ""
+      helm-version:
+        description: helm version
+        type: string
+        default: "v3.4.2"
+      values-to-override:
+        description: list of values to override in the helm chart
+        type: string
+        default: ""
+
+    steps:
+      - checkout
+      - run:
+          name: set build versions
+          command: |
+            sed s/CIRCLE_BUILD_NUM/${CIRCLE_BUILD_NUM}/ -i << parameters.chart >>/Chart.yaml
+      - gcp-gke/update-kubeconfig-with-credentials:
+          cluster: << parameters.cluster-name >>
+          install-kubectl: true
+          perform-login: true
+
+      - unless: 
+          condition:
+            equal: [ "", << parameters.repo >> ]
+          steps:
+            - helm/upgrade-helm-chart:
+                namespace: << parameters.namespace >>
+                release-name: << parameters.release-name >>
+                chart: repo/<< parameters.chart >>
+                helm-version: << parameters.helm-version >>
+                values-to-override: << parameters.values-to-override >>
+      - when: 
+          condition:
+              equal: [ "", << parameters.repo >> ]
+          steps:
+            - helm/upgrade-helm-chart:
+                namespace: << parameters.namespace >>
+                release-name: << parameters.release-name >>
+                chart: << parameters.chart >>
+                helm-version: << parameters.helm-version >>
+                values-to-override: << parameters.values-to-override >>
+
+

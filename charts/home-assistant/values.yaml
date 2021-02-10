@@ -1,0 +1,255 @@
+configuration: 
+    # Configure a default setup of Home Assistant (frontend, api, etc)
+    default_config:
+
+    logger:
+      default: debug
+
+    # Text to speech
+    tts:
+      - platform: google_translate
+
+    group:
+      livingroom:
+        entities: 
+          - light.livingroom_left
+          - light.livingroom_right
+      bathroom:
+        entities: 
+          - light.bathroom_left
+          - light.bathroom_right
+
+    scene static:
+      - name: bathroom_off
+        entities:
+          light.bathroom_left:
+            state: 'off'
+          light.bathroom_right:
+            brightness: 1
+            rgb_color: [1,0,0]
+            state: 'on'
+      - name: bathroom_morning
+        entities:
+          group.bathroom:
+            brightness_pct: 70
+            kelvin: 6000
+            state: on
+      - name: bathroom_evening
+        entities:
+          group.bathroom:
+            brightness_pct: 20
+            kelvin: 2750
+            state: 'on'
+
+
+
+
+      - name: livingroom_morning
+        entities:
+          group.livingroom:
+            brightness_pct: 100
+            kelvin: 6000
+            state: 'on'
+      - name: livingroom_evening
+        entities:
+          group.livingroom:
+            brightness_pct: 30
+            kelvin: 2750
+            state: 'on'
+      - name: livingroom_off
+        entities:
+          group.livingroom:
+            state: 'off'
+
+
+    automation static:
+      - alias: Color Cycle
+        trigger: []
+        condition: []
+        action:
+          - service: lifx.effect_colorloop
+            data:
+              brightness: 180
+              period: 20
+              change: 30
+              spread: 120
+            entity_id: group.livingroom
+        mode: single
+      - alias: Morning
+        description: 'Turn lights on'
+        trigger:
+        - platform: time
+          at: '4:00'
+        condition: []
+        action:
+        - service: scene.turn_on
+          data: 
+            transition: 10
+          entity_id: scene.livingroom_morning
+        - service: scene.turn_on
+          data: 
+            transition: 10
+          entity_id: scene.bathroom_morning
+        mode: single
+
+      - alias: Sunrise
+        description: 'Turn off livingroom lights'
+        trigger:
+        - platform: sun
+          event: sunrise
+          offset: "-00:35:00"
+        condition: []
+        action:
+        - service: scene.turn_on
+          entity_id: scene.livingroom_off
+          data: 
+            transition: 2700
+        mode: single
+
+      - alias: Sunset
+        description: 'Turn on lights'
+        trigger:
+        - platform: sun
+          event: sunset
+          offset: "-00:55:00"
+        condition: []
+        action:
+        - service: scene.turn_on
+          entity_id: scene.livingroom_evening
+          data: 
+            transition: 2700
+        mode: single
+      - alias: Lights Out
+        description: 'Lights out with a 15 minute warning '
+        trigger:
+        - platform: time
+          at: '21:00'
+        condition: []
+        action:
+        - service: lifx.effect_pulse
+          data:
+            period: 0.5
+            cycles: 3
+            color_name: green
+            mode: breathe
+            power_on: false
+          entity_id: group.livingroom
+        - service: scene.turn_on
+          data:
+            transition: 900
+          entity_id: scene.livingroom_off
+        mode: single
+
+    light:
+      - platform: template
+        lights:
+          bathroom: 
+            friendly_name: Bathroom
+            level_template: 1
+            value_template: "{{ states('light.bathroom_left') }}"
+            temperature_template: "311"
+            color_template: "(1,1)"
+            turn_on:
+              service: scene.turn_on
+              data:
+                entity_id:  "scene.bathroom_{%- if is_state_attr('sun.sun', 'rising', true) -%}morning{%- else -%}evening{%- endif -%}"
+                transition: 1
+            turn_off:
+              service: scene.turn_on
+              data:
+                entity_id: scene.bathroom_off
+                transition: 1
+
+            set_temperature: []
+            set_level: []
+            set_white_value: []
+            set_color: []
+
+    homeassistant:
+      name: "The Witch's Spire"
+      latitude: 0
+      longitude: 0
+      elevation: 80
+      unit_system: metric
+      time_zone: America/Vancouver
+      external_url: "https://iot.siliconsorceress.com/"
+      legacy_templates: false
+
+    lifx:
+      light:
+        - broadcast: 10.64.36.64 #LR Right
+        - broadcast: 10.64.36.65 #LR Left
+        - broadcast: 10.64.36.66 #Bathroom Right
+        - broadcast: 10.64.36.67 #Bathroom Left
+
+home-assistant:
+  common:
+    initContainers:
+    - name: init-config
+      image: busybox:latest
+      command: 
+        - sh
+        - -xc
+        - |
+          if [ ! -f /config/.storage/onboarding ]; then
+            install -D /configmap/onboarding /config/.storage/onboarding
+          fi 
+          touch /config/automations.yaml
+          touch /config/scenes.yaml
+          touch /config/groups.yaml
+          touch /config/scripts.yaml
+
+      volumeMounts:
+          - name: config
+            mountPath: /config
+          - name: configmap-overlay
+            mountPath: /configmap
+
+  hostNetwork: false
+
+  # Enable passing thru a USB device to Home Assistant
+  securityContext:
+    privileged: false
+
+  # Allow access a Git repository by passing in a private SSH key
+  git:
+    # Raw SSH private key
+    deployKey: ""
+    # Base64-encoded SSH private key. When both variables are set, the raw SSH key takes precedence.
+    deployKeyBase64: ""
+
+  # Enable a prometheus-operator servicemonitor
+  prometheus:
+    serviceMonitor:
+      enabled: true
+      # interval: 1m
+      # additionalLabels: {}
+
+  persistence:
+    config:
+      enabled: true
+      emptyDir: false
+      ## Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      # storageClass: "-"
+      # accessMode: ReadWriteOnce
+      # size: 1Gi
+      ## Do not delete the pvc upon helm uninstall
+      # skipuninstall: false
+      existingClaim: home-assistant
+
+       # Path to your Z-Wave / Zigbee device in the container
+  additionalVolumeMounts:
+      - name: configmap-overlay
+        mountPath: "/config/configuration.yaml"
+        subPath: configuration.yaml
+  additionalVolumes:
+      - name: configmap-overlay
+        configMap:
+          name: home-assistant
+
+
