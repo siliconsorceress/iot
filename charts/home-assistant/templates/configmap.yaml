@@ -1,5 +1,6 @@
 apiVersion: v1
 data:
+
   configuration.yaml: |
     # Managed by Helm
     #
@@ -7,6 +8,7 @@ data:
     scene: !include scenes.yaml
     automation: !include automations.yaml
     {{- toYaml .Values.configuration | nindent 4 }}
+
   onboarding: |
     {
         "version": 3,
@@ -18,6 +20,7 @@ data:
             ]
         }
     }
+
 kind: ConfigMap
 metadata:
   name: {{ include "home-assistant.fullname" . }}

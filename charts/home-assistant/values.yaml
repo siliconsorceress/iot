@@ -1,24 +1,24 @@
-configuration: 
+configuration:
     # Configure a default setup of Home Assistant (frontend, api, etc)
     default_config:
 
     logger:
       default: debug
 
-    # Text to speech
     tts:
       - platform: google_translate
 
     group:
       livingroom:
-        entities: 
+        entities:
           - light.livingroom_left
           - light.livingroom_right
       bathroom:
-        entities: 
+        entities:
           - light.bathroom_left
           - light.bathroom_right
 
+    ########## Scenes
     scene static:
       - name: bathroom_off
         entities:
@@ -28,12 +28,14 @@ configuration:
             brightness: 1
             rgb_color: [1,0,0]
             state: 'on'
+
       - name: bathroom_morning
         entities:
           group.bathroom:
             brightness_pct: 70
             kelvin: 6000
             state: on
+
       - name: bathroom_evening
         entities:
           group.bathroom:
@@ -41,28 +43,29 @@ configuration:
             kelvin: 2750
             state: 'on'
 
-
-
-
       - name: livingroom_morning
         entities:
           group.livingroom:
             brightness_pct: 100
             kelvin: 6000
             state: 'on'
+
       - name: livingroom_evening
         entities:
           group.livingroom:
             brightness_pct: 30
             kelvin: 2750
             state: 'on'
+
       - name: livingroom_off
         entities:
           group.livingroom:
             state: 'off'
 
 
+    ########## Automations
     automation static:
+
       - alias: Color Cycle
         trigger: []
         condition: []
@@ -75,6 +78,7 @@ configuration:
               spread: 120
             entity_id: group.livingroom
         mode: single
+
       - alias: Morning
         description: 'Turn lights on'
         trigger:
@@ -83,11 +87,11 @@ configuration:
         condition: []
         action:
         - service: scene.turn_on
-          data: 
+          data:
             transition: 10
           entity_id: scene.livingroom_morning
         - service: scene.turn_on
-          data: 
+          data:
             transition: 10
           entity_id: scene.bathroom_morning
         mode: single
@@ -102,7 +106,7 @@ configuration:
         action:
         - service: scene.turn_on
           entity_id: scene.livingroom_off
-          data: 
+          data:
             transition: 2700
         mode: single
 
@@ -116,9 +120,10 @@ configuration:
         action:
         - service: scene.turn_on
           entity_id: scene.livingroom_evening
-          data: 
+          data:
             transition: 2700
         mode: single
+
       - alias: Lights Out
         description: 'Lights out with a 15 minute warning '
         trigger:
@@ -140,10 +145,11 @@ configuration:
           entity_id: scene.livingroom_off
         mode: single
 
+    ########## Template Lights
     light:
       - platform: template
         lights:
-          bathroom: 
+          bathroom:
             friendly_name: Bathroom
             level_template: 1
             value_template: "{{ states('light.bathroom_left') }}"
@@ -165,6 +171,7 @@ configuration:
             set_white_value: []
             set_color: []
 
+    ########## System Config
     homeassistant:
       name: "The Witch's Spire"
       latitude: 0
@@ -175,6 +182,7 @@ configuration:
       external_url: "https://iot.siliconsorceress.com/"
       legacy_templates: false
 
+    ########## lifx lights
     lifx:
       light:
         - broadcast: 10.64.36.64 #LR Right
@@ -182,18 +190,19 @@ configuration:
         - broadcast: 10.64.36.66 #Bathroom Right
         - broadcast: 10.64.36.67 #Bathroom Left
 
+##########  Home Assistant Chart Configuration
 home-assistant:
   common:
     initContainers:
     - name: init-config
       image: busybox:latest
-      command: 
+      command:
         - sh
         - -xc
         - |
           if [ ! -f /config/.storage/onboarding ]; then
             install -D /configmap/onboarding /config/.storage/onboarding
-          fi 
+          fi
           touch /config/automations.yaml
           touch /config/scenes.yaml
           touch /config/groups.yaml
