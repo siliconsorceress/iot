@@ -153,8 +153,8 @@ configuration:
             friendly_name: Bathroom
             level_template: 1
             value_template: "{{ states('light.bathroom_left') }}"
-            temperature_template: "311"
-            color_template: "(1,1)"
+            temperature_template: "{{ state_attr('light.bathroom_left', 'color_temp') }}"
+            color_template: "{{ state_attr('light.bathroom_left', 'hs_color')|string()}}"
             turn_on:
               service: scene.turn_on
               data:
