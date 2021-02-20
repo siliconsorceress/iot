@@ -151,7 +151,7 @@ configuration:
         lights:
           livingroom:
             friendly_name: Livingroom
-            level_template: "{{ state_attr('light.livingroom_left', 'brightness') }}"
+            level_template: "{{ state_attr('light.livingroom_left', 'brightness')|int }}"
             value_template: "{{ states('light.livingroom_left') }}"
               # this is a hack. FIXME: open a pull request to make min_mireds a configurable value
             temperature_template: >-
@@ -198,7 +198,7 @@ configuration:
                     - "{{ s }}"
           bathroom:
             friendly_name: Bathroom
-            level_template: "{{ state_attr('light.bathroom_left', 'brightness') }}"
+            level_template: "{{ state_attr('light.bathroom_left', 'brightness')|int }}"
             value_template: "{{ states('light.bathroom_left') }}"
               # this is a hack. FIXME: open a pull request to make min_mireds a configurable value
             temperature_template: >-
