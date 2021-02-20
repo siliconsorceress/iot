@@ -149,6 +149,55 @@ configuration:
     light:
       - platform: template
         lights:
+          livingroom:
+            friendly_name: Livingroom
+            level_template: "{{ state_attr('light.livingroom_left', 'brightness') }}"
+            value_template: "{{ states('light.livingroom_left') }}"
+              # this is a hack. FIXME: open a pull request to make min_mireds a configurable value
+            temperature_template: >-
+              {% set color_temp = state_attr('light.livingroom_left', 'color_temp')|default(255,true) %}
+              {% set min_mireds = state_attr('light.livingroom', 'min_mireds') %}
+              {{ color_temp }}
+              {{ min_mireds}}
+              {% if color_temp < min_mireds %}
+              {{ min_mireds }}
+              {% else %}
+              {{ color_temp }}
+              {% endif %}
+            color_template: "{{ state_attr('light.livingroom_left', 'hs_color')|default('(0,0)',true) }}"
+            turn_on:
+              service: scene.turn_on
+              data:
+                entity_id:  "scene.livingroom_{%- if is_state_attr('sun.sun', 'rising', true) -%}morning{%- else -%}evening{%- endif -%}"
+                transition: 1
+            turn_off:
+              service: scene.turn_on
+              data:
+                entity_id: scene.livingroom_off
+                transition: 1
+
+            set_temperature:
+              - service: light.turn_on
+                data:
+                  entity_id:  group.livingroom
+                  color_temp: "{{ color_temp }}"
+            set_level:
+              - service: light.turn_on
+                data:
+                  entity_id:  group.livingroom
+                  brightness: "{{ brightness }}"
+            set_white_value:
+              - service: light.turn_on
+                data:
+                  entity_id:  group.livingroom
+                  white_value: "{{ white_value }}"
+            set_color:
+              - service: light.turn_on
+                data:
+                  entity_id:  group.livingroom
+                  hs_color: 
+                    - "{{ h }}"
+                    - "{{ s }}"
           bathroom:
             friendly_name: Bathroom
             level_template: "{{ state_attr('light.bathroom_left', 'brightness') }}"
