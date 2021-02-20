@@ -157,8 +157,6 @@ configuration:
             temperature_template: >-
               {% set color_temp = state_attr('light.livingroom_left', 'color_temp')|default(255,true) %}
               {% set min_mireds = state_attr('light.livingroom', 'min_mireds') %}
-              {{ color_temp }}
-              {{ min_mireds}}
               {% if color_temp < min_mireds %}
               {{ min_mireds }}
               {% else %}
@@ -206,8 +204,6 @@ configuration:
             temperature_template: >-
               {% set color_temp = state_attr('light.bathroom_left', 'color_temp')|default(255,true) %}
               {% set min_mireds = state_attr('light.bathroom', 'min_mireds') %}
-              {{ color_temp }}
-              {{ min_mireds}}
               {% if color_temp < min_mireds %}
               {{ min_mireds }}
               {% else %}
