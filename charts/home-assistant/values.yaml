@@ -267,6 +267,9 @@ configuration:
       discovery: false
       switch:
         - host: 10.64.36.68
+        - host: 10.64.36.69
+        - host: 10.64.36.70
+        - host: 10.64.36.71
 ##########  Home Assistant Chart Configuration
 home-assistant:
   common:
