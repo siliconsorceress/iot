@@ -49,6 +49,12 @@ configuration:
             brightness_pct: 100
             kelvin: 6000
             state: 'on'
+          switch.uvb:
+            state: 'on'
+          switch.uva:
+            state: 'off'
+          switch.planet:
+            state: 'off'
 
       - name: livingroom_evening
         entities:
@@ -56,17 +62,29 @@ configuration:
             brightness_pct: 30
             kelvin: 2750
             state: 'on'
+          switch.planet:
+            state: 'on'
+          switch.uva:
+            state: 'off'
+          switch.uvb:
+            state: 'off'
 
       - name: livingroom_off
         entities:
           group.livingroom:
+            state: 'off'
+          switch.uva:
+            state: 'off'
+          switch.uvb:
+            state: 'off'
+          switch.planet:
             state: 'off'
 
 
     ########## Automations
     automation static:
 
-      - alias: Color Cycle
+      - alias: party
         trigger: []
         condition: []
         action:
@@ -77,6 +95,12 @@ configuration:
               change: 30
               spread: 120
             entity_id: group.livingroom
+          - service: switch.turn_on
+            data:
+              entity_id: switch.uva
+          - service: switch.turn_on
+            data:
+              entity_id: switch.planet
         mode: single
 
       - alias: Morning
@@ -193,7 +217,7 @@ configuration:
               - service: light.turn_on
                 data:
                   entity_id:  group.livingroom
-                  hs_color: 
+                  hs_color:
                     - "{{ h }}"
                     - "{{ s }}"
           bathroom:
@@ -240,7 +264,7 @@ configuration:
               - service: light.turn_on
                 data:
                   entity_id:  group.bathroom
-                  hs_color: 
+                  hs_color:
                     - "{{ h }}"
                     - "{{ s }}"
 
