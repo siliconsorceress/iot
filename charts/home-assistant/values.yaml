@@ -169,6 +169,23 @@ configuration:
           entity_id: scene.livingroom_off
         mode: single
 
+      - alias: Garden Light On
+        trigger:
+          - platform: time
+            at: '8:00'
+        action:
+          - service: switch.turn_on
+            entity_id: switch.grow_lamp
+        mode: single
+
+      - alias: Garden Light Off
+        trigger:
+          - platform: time
+            at: '20:00'
+        action:
+          - service: switch.turn_off
+            entity_id: switch.grow_lamp
+        mode: single
     ########## Template Lights
     light:
       - platform: template
