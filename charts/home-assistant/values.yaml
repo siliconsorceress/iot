@@ -263,6 +263,10 @@ configuration:
         - broadcast: 10.64.36.66 #Bathroom Right
         - broadcast: 10.64.36.67 #Bathroom Left
 
+    tplink:
+      discovery: false
+      switch:
+        - host: 10.64.36.68
 ##########  Home Assistant Chart Configuration
 home-assistant:
   common:
