@@ -128,10 +128,19 @@ configuration:
           offset: "-00:35:00"
         condition: []
         action:
-        - service: scene.turn_on
-          entity_id: scene.livingroom_off
+        - service: light.turn_off
+          entity_id: light.livingroom
           data:
             transition: 2700
+        - alias: "Wait for fade to finish"
+          wait_for_trigger:
+            - platform: state
+              entity_id: light.livingroom
+              to: "off"
+              for: "00:10:00"
+        - service: switch.turn_off
+          entity_id: switch.uvb
+
         mode: single
 
       - alias: Sunset
