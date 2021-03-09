@@ -219,9 +219,9 @@ configuration:
                 entity_id:  "scene.livingroom_{%- if is_state_attr('sun.sun', 'rising', true) -%}morning{%- else -%}evening{%- endif -%}"
                 transition: 1
             turn_off:
-              service: scene.turn_on
+              service: group.turn_off
               data:
-                entity_id: scene.livingroom_off
+                entity_id: group.livingroom
                 transition: 1
 
             set_temperature:
