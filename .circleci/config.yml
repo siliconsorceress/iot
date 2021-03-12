@@ -23,7 +23,9 @@ workflows:
           context: gcloud
           filters:
             branches:
-              only: main 
+              only:
+                - testing
+                - main
 
       - helmdeploy:
           name: helmdeploy-home-assistant
@@ -36,7 +38,9 @@ workflows:
           context: gcloud
           filters:
             branches:
-              only: main
+              only:
+                - testing
+                - main
 
 jobs:
   helmdeploy:
@@ -56,7 +60,7 @@ jobs:
         description: the path of the chart to be deployed
         type: string
       repo:
-        description: the URL of the repo 
+        description: the URL of the repo
         type: string
         default: ""
       helm-version:
@@ -79,7 +83,7 @@ jobs:
           install-kubectl: true
           perform-login: true
 
-      - unless: 
+      - unless:
           condition:
             equal: [ "", << parameters.repo >> ]
           steps:
@@ -89,7 +93,7 @@ jobs:
                 chart: repo/<< parameters.chart >>
                 helm-version: << parameters.helm-version >>
                 values-to-override: << parameters.values-to-override >>
-      - when: 
+      - when:
           condition:
               equal: [ "", << parameters.repo >> ]
           steps:
